@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Inbox</title></head>
+<body style="font-family:Arial; padding:24px;">
+  <h2>Inbox (50 users gần nhất)</h2>
+  <ul>
+    {% for u in users %}
+      <li>
+        <a href="/admin/u/{{u.psid}}">{{u.psid}}</a>
+        - last_seen: {{u.last_seen_at}} - active: {{u.is_active}}
+      </li>
+    {% endfor %}
+  </ul>
+</body></html>
