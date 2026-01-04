@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from datetime import datetime, timezone
 from sqlalchemy import select
 from .db import SessionLocal
@@ -77,12 +77,19 @@ def handle_command(db, psid: str, text: str):
     # Không lệnh => im lặng (theo yêu cầu vk)
     return
 
+
 @router.get("/webhook")
-def verify(mode: str = "", challenge: str = "", verify_token: str = ""):
-    # Meta verify webhook
-    if mode == "subscribe" and verify_token == VERIFY_TOKEN:
-        return int(challenge)
-    return {"ok": False}
+async def verify(request: Request):
+    params = request.query_params
+
+    mode = params.get("hub.mode")
+    token = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return Response(content=challenge, media_type="text/plain")
+
+    return Response(content="Verification failed", status_code=403)
 
 @router.post("/webhook")
 async def receive(req: Request):
