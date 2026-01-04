@@ -7,6 +7,10 @@ from .sync_old import sync_conversations
 
 app = FastAPI(title="Messenger Bot + CRM")
 
+@app.get("/")
+def root():
+    return {"status": "ok"}
+
 Base.metadata.create_all(bind=engine)
 
 app.include_router(webhook_router)
@@ -20,3 +24,8 @@ def job_sync():
     sync_conversations(limit=25)
 
 sched.start()
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    sched.shutdown()
