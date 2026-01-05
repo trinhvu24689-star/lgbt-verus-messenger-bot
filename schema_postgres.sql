@@ -43,3 +43,9 @@ CREATE TABLE IF NOT EXISTS bot_settings (
 INSERT INTO bot_settings (key, value)
 VALUES ('antispam', 'on')
 ON CONFLICT (key) DO NOTHING;
+
+INSERT INTO bot_settings (key, value)
+VALUES 
+  ('antilink', 'on'),
+  ('antiqr', 'on')
+ON CONFLICT (key) DO NOTHING;

@@ -8,6 +8,9 @@ from .ai import ask_ai
 from .config import VERIFY_TOKEN
 from services.antispam import is_spam
 from services.settings import get_setting
+from services.antilink import has_link
+from services.antiqr import has_qr
+from services.settings import get_setting
 
 router = APIRouter()
 
@@ -49,6 +52,32 @@ def handle_command(db, psid: str, text: str):
     t = (text or "").strip()
     low = t.lower()
 
+
+# /antilink on|off
+if low.startswith("/antilink"):
+    if not is_admin(psid):
+        return
+    v = "on" if "on" in low else "off"
+    db.execute(
+        "INSERT INTO bot_settings (key,value) VALUES ('antilink',:v) "
+        "ON CONFLICT (key) DO UPDATE SET value=:v",
+        {"v": v}
+    )
+    send_text(psid, f"✅ AntiLink = {v}")
+    return
+
+# /antiqr on|off
+if low.startswith("/antiqr"):
+    if not is_admin(psid):
+        return
+    v = "on" if "on" in low else "off"
+    db.execute(
+        "INSERT INTO bot_settings (key,value) VALUES ('antiqr',:v) "
+        "ON CONFLICT (key) DO UPDATE SET value=:v",
+        {"v": v}
+    )
+    send_text(psid, f"✅ AntiQR = {v}")
+    return
 
     if low.startswith("/antispam"):
     if not is_admin(psid):
@@ -119,6 +148,29 @@ async def receive(req: Request):
                 sender = ev.get("sender", {}).get("id")
                 if not sender:
                     continue
+
+
+                # ===== ANTI LINK =====
+             if get_setting(db, "antilink") == "on":
+                 if has_link(text):
+                     db.add(Event(
+                          psid=sender,
+                          type="antilink",
+                          detail=text,
+                          created_at=now_utc()
+                      ))
+                      continue
+
+                # ===== ANTI QR =====
+              if get_setting(db, "antiqr") == "on":
+                  if has_qr(ev):
+                      db.add(Event(
+                          psid=sender,
+                          type="antiqr",
+                          detail="qr/image",
+                          created_at=now_utc()
+                       ))
+                       continue
 
                 if get_setting(db, "antispam") == "on":
                     if is_spam(sender):
