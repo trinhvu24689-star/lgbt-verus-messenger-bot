@@ -96,7 +96,33 @@ if low.startswith("/antiqr"):
     return
 
     if low == "/help":
-        send_text(psid, "📌 Lệnh:\n/help\n/ai <câu hỏi>\n/stop (tắt bot)\n/start (mở lại)")
+        send_text(
+            psid,
+            "/help\n"
+            "────────────────\n"
+            "📌 LỆNH BOT\n"
+            "/help\n"
+            "/bxh\n"
+            "/bxh ngay | thang | nam\n"
+            "/thoitiet <tp>\n"
+            "/dich <nội dung>\n"
+            "/ai <câu hỏi>"
+        )
+        return
+
+    if low == "/helpqtv":
+        if not is_admin(psid):
+            return
+
+        send_text(
+            psid,
+            "/helpqtv\n"
+            "────────────────\n"
+            "🛡️ QUẢN LÝ\n"
+            "/antispam on|off\n"
+            "/antilink on|off\n"
+            "/antiqr on|off"
+        )
         return
 
     if low.startswith("/ai"):
