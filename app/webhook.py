@@ -13,6 +13,8 @@ from services.antiqr import has_qr
 from services.settings import get_setting
 from services.bxh import get_bxh
 from services.bxh_format import format_bxh
+from services.weather import get_weather
+from services.translate import translate_auto
 
 router = APIRouter()
 
@@ -134,6 +136,40 @@ if low.startswith("/antiqr"):
 
     send_text(psid, msg)
     return
+
+    if low.startswith("/thoitiet"):
+        parts = text.split(maxsplit=1)
+        if len(parts) < 2:
+            send_text(psid, "Nhập tên thành phố nha. Ví dụ: /thoitiet Hà Nội")
+            return
+
+        w = get_weather(parts[1])
+        if not w:
+            send_text(psid, "❌ Không tìm thấy thời tiết.")
+            return
+
+        send_text(
+            psid,
+            f"🌤️ Thời tiết {w['city']}\n"
+            f"🌡️ {w['temp']}°C\n"
+            f"💧 Độ ẩm: {w['hum']}%\n"
+            f"☁️ {w['desc']}"
+        )
+        return
+
+    if low.startswith("/dich"):
+        parts = text.split(maxsplit=1)
+        if len(parts) < 2:
+            send_text(psid, "Nhập nội dung cần dịch nha.")
+            return
+
+        kq = translate_auto(parts[1])
+        if not kq:
+            send_text(psid, "❌ Không dịch được.")
+            return
+
+        send_text(psid, f"🌍 Kết quả dịch:\n{kq}")
+        return
 
     # Không lệnh => im lặng (theo yêu cầu vk)
     return
