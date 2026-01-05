@@ -11,6 +11,8 @@ from services.settings import get_setting
 from services.antilink import has_link
 from services.antiqr import has_qr
 from services.settings import get_setting
+from services.bxh import get_bxh
+from services.bxh_format import format_bxh
 
 router = APIRouter()
 
@@ -117,6 +119,21 @@ if low.startswith("/antiqr"):
             u.is_active = 1
         send_text(psid, "✅ Bật lại rồi nè. Gõ /help để xem lệnh.")
         return
+
+    if low.startswith("/bxh"):
+        parts = low.split()
+        mode = "ngay"
+
+        if len(parts) > 1:
+            if parts[1] in ("ngay", "thang", "nam"):
+                mode = parts[1]
+
+    rows = get_bxh(db, mode)
+    title = "HÔM NAY" if mode=="ngay" else "THÁNG" if mode=="thang" else "NĂM"
+    msg = format_bxh(rows, title)
+
+    send_text(psid, msg)
+    return
 
     # Không lệnh => im lặng (theo yêu cầu vk)
     return
