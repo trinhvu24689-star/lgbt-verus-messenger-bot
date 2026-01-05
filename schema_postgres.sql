@@ -34,3 +34,12 @@ CREATE TABLE IF NOT EXISTS events (
   detail TEXT,
   created_at TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS bot_settings (
+  key VARCHAR(50) PRIMARY KEY,
+  value VARCHAR(50) NOT NULL
+);
+
+INSERT INTO bot_settings (key, value)
+VALUES ('antispam', 'on')
+ON CONFLICT (key) DO NOTHING;

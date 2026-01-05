@@ -6,6 +6,8 @@ from .models import FbUser, Message, Event
 from .meta import send_text
 from .ai import ask_ai
 from .config import VERIFY_TOKEN
+from services.antispam import is_spam
+from services.settings import get_setting
 
 router = APIRouter()
 
@@ -46,6 +48,19 @@ def ensure_user(db, psid: str):
 def handle_command(db, psid: str, text: str):
     t = (text or "").strip()
     low = t.lower()
+
+
+    if low.startswith("/antispam"):
+    if not is_admin(psid):
+        return
+    v = "on" if "on" in low else "off"
+    db.execute(
+        "INSERT INTO bot_settings (key,value) VALUES ('antispam',:v) "
+        "ON CONFLICT (key) DO UPDATE SET value=:v",
+        {"v": v}
+    )
+    send_text(psid, f"✅ AntiSpam = {v}")
+    return
 
     if low == "/help":
         send_text(psid, "📌 Lệnh:\n/help\n/ai <câu hỏi>\n/stop (tắt bot)\n/start (mở lại)")
@@ -104,6 +119,15 @@ async def receive(req: Request):
                 sender = ev.get("sender", {}).get("id")
                 if not sender:
                     continue
+
+                if get_setting(db, "antispam") == "on":
+                    if is_spam(sender):
+                        db.add(Event(
+                            psid=sender,
+                            type="spam", detail="rate limit",
+                            created_at=now_utc()
+                         ))
+                         continue
 
                 u, is_first = ensure_user(db, sender)
 
